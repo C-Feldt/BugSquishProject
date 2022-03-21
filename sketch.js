@@ -1,7 +1,7 @@
 /*
-  Author: Calvin W Feldt
-  Start Date:  14 January 2022
-  Last Edit:   15 January 2022
+  Author:     Calvin W Feldt
+  Start Date: 14 January 2022
+  Last Edit:  15 January 2022
 
   Title: BugSquishProject
   Description:  This is a simple game in which the player squishes little space invaders named "Fronks."
@@ -25,6 +25,7 @@ let gameState = 'start';
 let startFrameCount;
 let timeRemaining
 let round = 1;
+
 
 // spriteSheet: The Fronk's sprite sheet
 // backImage: The background image
@@ -64,16 +65,31 @@ function draw() {
 
   //The game's start screen graphics
   if(gameState == 'start'){
-    textAlign(CENTER, CENTER)
+    textAlign(CENTER, CENTER);
     fill(255, 255, 0);
     textSize(100);
-    textFont('Arial')
+    textFont('Arial');
     text('FRONKS', 250, 180);
     textSize(20);
     fill(255);
     text('THE INVASION OF THE', 157, 115);
     if(frameCount % 80 <= 40){
       text('CLICK TO BEGIN', 130, 240);
+    }
+  }
+
+  if(gameState == 'transition'){
+    if(frameCount >= startFrameCount + 180){
+      gameState = 'playing';
+    }
+    else {
+      transitionNum = int(((startFrameCount + 180 - frameCount) / 60) + 1);
+      textAlign(CENTER, CENTER);
+      fill(255);
+      textSize(100);
+      textFont('Arial');
+      text(transitionNum, 400, 300);
+ 
     }
   }
   
@@ -105,10 +121,12 @@ function draw() {
     for(i = 0; i < fronkAmount; i++){
       fronkHouse[i].direction = 5;
       fronkHouse[i].y = 900;
-      textSize(50);
-      text('YOUR SCORE', 400, 400);
+    }
+    textSize(50);
+    text('YOUR SCORE', 400, 350);
+    if(frameCount % 40 <= 30){
       textSize(100);
-      text(totalDeaths, 400, 300);
+      text(totalDeaths, 400, 250);
     }
   }
 
@@ -121,7 +139,7 @@ function draw() {
 function mousePressed() {
 
   if(gameState == 'start'){   //If on the start-screen, start the game.
-    gameState = 'playing';
+    gameState = 'transition';
     startFrameCount = frameCount;
   }
   previousFronkDeaths = fronkDeaths;  //Fronk death administration system.
