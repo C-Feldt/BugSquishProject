@@ -14,9 +14,12 @@ Purpose: LSU Spring 2022 CSC2463 'Bug Squish' Assignment
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Bugs:	* If Fronks spawn in the same spot as the mouse initially clicks prior to starting the game, the Fronk may freeze
+Bugs
+	* If Fronks spawn in the same spot as the mouse initially clicks prior to starting the game, the Fronk may freeze
 	  on the death frame for the entirety of the game.
 	* If two Fronks are squished at once, the console throws an error for loading the same audio file simultaneously.
 	  This has no effect on gameplay and is only visible via the console itself.
+
+Resolved Bugs
 	* End-game victory music will ONLY play if the player has not advanced the music BPM. (Music tempo advances
 	  with every click after 10 seconds have elapsed.)

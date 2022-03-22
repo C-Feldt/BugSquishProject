@@ -28,11 +28,11 @@ let startFrameCount;
 let timeRemaining;
 let round = 1;
 let musicTriggered = false;
-let milliTime = 0;
+let deathFrame;
 
 // Sound Elements
 time = .001;
-Tone.Transport.bpm.value = 100;
+Tone.Transport.bpm.value = 100;   //100 BPM: All the Music EXCEPT for the end song is adjustable with this statement.
 
 const introMelody = [ //The Introductory Melody Theme
   {'time': '0:0:0', 'note': 'D5', 'duration': '16n'},
@@ -67,7 +67,7 @@ const introMelody = [ //The Introductory Melody Theme
   
 ];
 
-const bassTrack = [ //The Introductory Bassline
+const bassTrack = [   //The Introductory Bassline
   {'time': '0:0:0', 'note': 'D2', 'duration': '2n'},
   {'time': '0:3:0', 'note': 'D2', 'duration': '2n'},
   {'time': '0:6:0', 'note': 'D2', 'duration': '2n'},
@@ -78,14 +78,14 @@ const bassTrack = [ //The Introductory Bassline
   {'time': '0:21:0', 'note': 'D2', 'duration': '2n'},
 ]
 
-const bassTrack2 = [
+const bassTrack2 = [  //The Bassline whilst playing the game
   {'time': '0:0:0', 'note': 'D2', 'duration': '4n'},
   {'time': '0:1:0', 'note': 'F2', 'duration': '4n'},
   {'time': '0:2:0', 'note': 'D2', 'duration': '4n'},
   {'time': '0:3:0', 'note': 'A2', 'duration': '4n'},
 ]
 
-const melody2 = [
+const melody2 = [     //The Melldy whilst playing the game
   {'time': '0:8:0', 'note': 'D5', 'duration': '16n'},
   {'time': '0:8:2', 'note': 'A5', 'duration': '8n'},
   {'time': '0:9:0', 'note': 'D5', 'duration': '16n'},
@@ -104,7 +104,7 @@ const melody2 = [
   {'time': '0:15:2', 'note': 'C5', 'duration': '8n'},
 ]
 
-const endBass = [
+const endBass = [     //The bassline for the endgame screen
   {'time': '0:0:0', 'note': 'A#2', 'duration': '2n'},
   {'time': '0:0:0', 'note': 'D3', 'duration': '2n'},
   {'time': '0:0:0', 'note': 'F3', 'duration': '2n'},
@@ -120,7 +120,7 @@ const endBass = [
 
 ]
 
-const endMelody = [
+const endMelody = [   //The melody for the endgame screen
   {'time': '0:0:0', 'note': 'F4', 'duration': '16n'},
   {'time': '0:0:2', 'note': 'A#4', 'duration': '16n'},
   {'time': '0:0:4', 'note': 'C5', 'duration': '16n'},
@@ -136,24 +136,25 @@ const endMelody = [
   {'time': '0:0:24', 'note': 'A4', 'duration': '2n'},
 ]
 
-const synth1 = new Tone.Synth({   //Used for the Melody
+const synth1 = new Tone.Synth({   //Synth for the Melody
   oscillator: {
-    volume: -4,
+    volume: 1,
     count: 3,
     spread: 40,
-    type: "square"
+    type: "triangle"
   }
 }).toDestination();
 
-const synth2 = new Tone.Synth({   //Used for the Bass
+const synth2 = new Tone.Synth({   //Synth for the Bass
   oscillator: {
-    volume: 0,
+    volume: 2,
     count: 3,
     spread: 40,
-    type: "sawtooth"
+    type: "fatsawtooth"
   }
 }).toDestination();
 
+//Setup for all audio Parts
 const introMelodyPart = new Tone.Part(function(time, note) {
   synth1.triggerAttackRelease(note.note, note.duration, time);
 }, introMelody);
@@ -173,7 +174,7 @@ const endMelodyPart = new Tone.Part(function(time, note) {
   synth1.triggerAttackRelease(note.note, note.duration, time);
 }, endMelody);
 
-
+//Loop setup for all audio Parts
 introMelodyPart.loop = true;
 introBassPart.loop = true;
 playBassPart.loop = true;
@@ -183,12 +184,13 @@ introBassPart.loopEnd = "0:24:0";
 playBassPart.loopEnd = "0:4:0";
 playMelodyPart.loopEnd = "0:16:0"
 
-
+//Player for sound effect
 let sounds = new Tone.Players({
-  death: 'media/hitmarker.wav'
+  death: 'media/hitmarker.wav'      //Death sound for each Fronk (currently a hitmarker noise)
 }).toDestination();
 
-sounds.volume.value = 10;
+//Volume of the sound effects
+sounds.volume.value = -5;
 
 
 
@@ -207,7 +209,7 @@ function preload() {
 //fronkSize: controls Fronk's size (Larger# = larger Fronk)                                                         Default: 1
 //fronkAmount: Amount of Fronks on screen.                                                                          Default: 12
 //fronkHouse: Array of Fronk objects.
-//fronkStatus: Array of Fronks' status (true = alive; dead = false)
+//OMMITTED//fronkStatus: Array of Fronks' status (true = alive; dead = false)
 function setup() {
   createCanvas(800, 600);
   imageMode(CENTER);
@@ -230,7 +232,7 @@ function draw() {
 
   //The game's start screen graphics
   if(gameState == 'start'){
-    if(musicTriggered == false){
+    if(musicTriggered == false){    //Triggers the music to play.
       introMelodyPart.start();
       introBassPart.start();
       musicTriggered = true;
@@ -289,6 +291,7 @@ function draw() {
     if(frameCount >= startFrameCount + 1800){
       playBassPart.stop();
       playMelodyPart.stop();
+      Tone.Transport.stop();
       Tone.Transport.bpm.value = 100;
       startFrameCount = frameCount;
       gameState = 'end';
@@ -306,13 +309,12 @@ function draw() {
 
   //End game screen.
   if(gameState == 'end'){
+    Tone.Transport.start();
+    endBassPart.start();
+      endMelodyPart.start();
     for(i = 0; i < fronkAmount; i++){
       fronkHouse[i].direction = 5;
       fronkHouse[i].y = 900;
-    }
-    if(startFrameCount == frameCount - 60){
-      endBassPart.start();
-      endMelodyPart.start();
     }
     textSize(50);
     text('YOUR SCORE', 400, 350);
@@ -333,15 +335,15 @@ function mousePressed() {
     gameState = 'transition';
     startFrameCount = frameCount;
 
-    musicTriggered = false;
+    musicTriggered = false;   //Stops the musuci prior to changing game states.
     introBassPart.stop();
     introMelodyPart.stop();
   }
   previousFronkDeaths = fronkDeaths;  //Fronk death administration system.
   fronkDeaths = 0;
   for(i = 0; i < fronkAmount; i++){
-    if(fronkHouse[i].kill()){
-      sounds.player('death').start();
+    if(fronkHouse[i].kill()){         //If a fronk has been killed:
+      sounds.player('death').start();   //Play the Death Noise
       for(j = 0; j < fronkAmount; j++){
         fronkHouse[j].fronkSpeed += .1;   //With every death, fronkSpeed increases by .1.
         if(frameCount - startFrameCount >= 600){  //After 10 seconds have passed (600 frames)...
@@ -351,7 +353,6 @@ function mousePressed() {
     }
   }
 }
-
 
 
 
