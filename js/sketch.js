@@ -104,6 +104,38 @@ const melody2 = [
   {'time': '0:15:2', 'note': 'C5', 'duration': '8n'},
 ]
 
+const endBass = [
+  {'time': '0:0:0', 'note': 'A#2', 'duration': '2n'},
+  {'time': '0:0:0', 'note': 'D3', 'duration': '2n'},
+  {'time': '0:0:0', 'note': 'F3', 'duration': '2n'},
+  {'time': '0:0:8', 'note': 'A2', 'duration': '2n'},
+  {'time': '0:0:8', 'note': 'C3', 'duration': '2n'},
+  {'time': '0:0:8', 'note': 'E3', 'duration': '2n'},
+  {'time': '0:0:16', 'note': 'G2', 'duration': '2n'},
+  {'time': '0:0:16', 'note': 'A#2', 'duration': '2n'},
+  {'time': '0:0:16', 'note': 'D3', 'duration': '2n'},
+  {'time': '0:0:24', 'note': 'D3', 'duration': '2n'},
+  {'time': '0:0:24', 'note': 'F#3', 'duration': '2n'},
+  {'time': '0:0:24', 'note': 'A3', 'duration': '2n'},
+
+]
+
+const endMelody = [
+  {'time': '0:0:0', 'note': 'F4', 'duration': '16n'},
+  {'time': '0:0:2', 'note': 'A#4', 'duration': '16n'},
+  {'time': '0:0:4', 'note': 'C5', 'duration': '16n'},
+  {'time': '0:0:6', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:0:8', 'note': 'E5', 'duration': '16n'},
+  {'time': '0:0:10', 'note': 'C5', 'duration': '16n'},
+  {'time': '0:0:12', 'note': 'G4', 'duration': '16n'},
+  {'time': '0:0:14', 'note': 'C5', 'duration': '16n'},
+  {'time': '0:0:16', 'note': 'F5', 'duration': '16n'},
+  {'time': '0:0:18', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:0:20', 'note': 'A#4', 'duration': '16n'},
+  {'time': '0:0:22', 'note': 'G4', 'duration': '16n'},
+  {'time': '0:0:24', 'note': 'A4', 'duration': '2n'},
+]
+
 const synth1 = new Tone.Synth({   //Used for the Melody
   oscillator: {
     volume: -4,
@@ -134,6 +166,13 @@ const playBassPart = new Tone.Part(function(time, note) {
 const playMelodyPart = new Tone.Part(function(time, note) {
   synth1.triggerAttackRelease(note.note, note.duration, time);
 }, melody2);
+const endBassPart = new Tone.Part(function(time, note) {
+  synth2.triggerAttackRelease(note.note, note.duration, time);
+}, endBass);
+const endMelodyPart = new Tone.Part(function(time, note) {
+  synth1.triggerAttackRelease(note.note, note.duration, time);
+}, endMelody);
+
 
 introMelodyPart.loop = true;
 introBassPart.loop = true;
@@ -212,6 +251,15 @@ function draw() {
 
   //Simple countdown phase.
   if(gameState == 'transition'){
+    if(frameCount == startFrameCount + 60){
+      synth1.triggerAttackRelease("C4", "16n");
+    }
+    if(frameCount == startFrameCount + 120){
+      synth1.triggerAttackRelease("D#4", "16n");
+    }
+    if(frameCount == startFrameCount + 180){
+      synth1.triggerAttackRelease("F#4", "16n");
+    }
     if(frameCount >= startFrameCount + 180){
       gameState = 'playing';
       startFrameCount = frameCount;
@@ -241,6 +289,8 @@ function draw() {
     if(frameCount >= startFrameCount + 1800){
       playBassPart.stop();
       playMelodyPart.stop();
+      Tone.Transport.bpm.value = 100;
+      startFrameCount = frameCount;
       gameState = 'end';
     }
     else{   //In-game graphical setup.
@@ -256,10 +306,13 @@ function draw() {
 
   //End game screen.
   if(gameState == 'end'){
-    round++;
     for(i = 0; i < fronkAmount; i++){
       fronkHouse[i].direction = 5;
       fronkHouse[i].y = 900;
+    }
+    if(startFrameCount == frameCount - 60){
+      endBassPart.start();
+      endMelodyPart.start();
     }
     textSize(50);
     text('YOUR SCORE', 400, 350);
@@ -291,8 +344,8 @@ function mousePressed() {
       sounds.player('death').start();
       for(j = 0; j < fronkAmount; j++){
         fronkHouse[j].fronkSpeed += .1;   //With every death, fronkSpeed increases by .1.
-        if(frameCount - startFrameCount >= 600){
-          Tone.Transport.bpm.value += 0.5;
+        if(frameCount - startFrameCount >= 600){  //After 10 seconds have passed (600 frames)...
+          Tone.Transport.bpm.value += 0.5;        //Music speed will increase by 0.5 BPM with every kill
         }
       }
     }
