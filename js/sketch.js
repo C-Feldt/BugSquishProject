@@ -23,15 +23,139 @@ let previousFronkDeaths;
 let totalDeaths = 0;
 let gameState = 'start';
 let startFrameCount;
-let timeRemaining
+let timeRemaining;
 let round = 1;
+let musicTriggered = false;
+let milliTime = 0;
+
+// Sound Elements
+time = .001;
+Tone.Transport.bpm.value = 100;
+
+const introMelody = [ //The Introductory Melody Theme
+  {'time': '0:0:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:0:1', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:0:2', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:0:3', 'note': 'D5', 'duration': '8n'},
+
+  {'time': '0:3:0', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:3:1', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:3:2', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:3:3', 'note': 'A#5', 'duration': '8n'},
+
+  {'time': '0:6:0', 'note': 'F5', 'duration': '16n'},
+  {'time': '0:6:1', 'note': 'F5', 'duration': '16n'},
+  {'time': '0:6:2', 'note': 'F5', 'duration': '16n'},
+  {'time': '0:6:3', 'note': 'F5', 'duration': '8n'},
+
+  {'time': '0:12:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:12:1', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:12:2', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:12:3', 'note': 'D5', 'duration': '8n'},
+
+  {'time': '0:15:0', 'note': 'C6', 'duration': '16n'},
+  {'time': '0:15:1', 'note': 'C6', 'duration': '16n'},
+  {'time': '0:15:2', 'note': 'C6', 'duration': '16n'},
+  {'time': '0:15:3', 'note': 'C6', 'duration': '8n'},
+
+  {'time': '0:18:0', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:18:1', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:18:2', 'note': 'A#5', 'duration': '16n'},
+  {'time': '0:18:3', 'note': 'A#5', 'duration': '8n'},
+  
+];
+
+const bassTrack = [ //The Introductory Bassline
+  {'time': '0:0:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:3:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:6:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:9:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:12:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:15:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:18:0', 'note': 'D2', 'duration': '2n'},
+  {'time': '0:21:0', 'note': 'D2', 'duration': '2n'},
+]
+
+const bassTrack2 = [
+  {'time': '0:0:0', 'note': 'D2', 'duration': '4n'},
+  {'time': '0:1:0', 'note': 'F2', 'duration': '4n'},
+  {'time': '0:2:0', 'note': 'D2', 'duration': '4n'},
+  {'time': '0:3:0', 'note': 'A2', 'duration': '4n'},
+]
+
+const melody2 = [
+  {'time': '0:8:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:8:2', 'note': 'A5', 'duration': '8n'},
+  {'time': '0:9:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:9:2', 'note': 'A#5', 'duration': '8n'},
+  {'time': '0:10:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:10:2', 'note': 'A5', 'duration': '8n'},
+  {'time': '0:11:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:11:2', 'note': 'C5', 'duration': '8n'},
+  {'time': '0:12:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:12:2', 'note': 'A5', 'duration': '8n'},
+  {'time': '0:13:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:13:2', 'note': 'A#5', 'duration': '8n'},
+  {'time': '0:14:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:14:2', 'note': 'A5', 'duration': '8n'},
+  {'time': '0:15:0', 'note': 'D5', 'duration': '16n'},
+  {'time': '0:15:2', 'note': 'C5', 'duration': '8n'},
+]
+
+const synth1 = new Tone.Synth({   //Used for the Melody
+  oscillator: {
+    volume: -4,
+    count: 3,
+    spread: 40,
+    type: "square"
+  }
+}).toDestination();
+
+const synth2 = new Tone.Synth({   //Used for the Bass
+  oscillator: {
+    volume: 0,
+    count: 3,
+    spread: 40,
+    type: "sawtooth"
+  }
+}).toDestination();
+
+const introMelodyPart = new Tone.Part(function(time, note) {
+  synth1.triggerAttackRelease(note.note, note.duration, time);
+}, introMelody);
+const introBassPart = new Tone.Part(function(time, note) {
+  synth2.triggerAttackRelease(note.note, note.duration, time);
+}, bassTrack);
+const playBassPart = new Tone.Part(function(time, note) {
+  synth2.triggerAttackRelease(note.note, note.duration, time);
+}, bassTrack2);
+const playMelodyPart = new Tone.Part(function(time, note) {
+  synth1.triggerAttackRelease(note.note, note.duration, time);
+}, melody2);
+
+introMelodyPart.loop = true;
+introBassPart.loop = true;
+playBassPart.loop = true;
+playMelodyPart.loop = true;
+introMelodyPart.loopEnd = "0:24:0";
+introBassPart.loopEnd = "0:24:0";
+playBassPart.loopEnd = "0:4:0";
+playMelodyPart.loopEnd = "0:16:0"
+
+
+let sounds = new Tone.Players({
+  death: 'media/hitmarker.wav'
+}).toDestination();
+
+sounds.volume.value = 10;
+
 
 
 // spriteSheet: The Fronk's sprite sheet
 // backImage: The background image
 function preload() {
-  spriteSheet = loadImage("images/FronkSheetAlternate.png");
-  backImage = loadImage("images/spaceBG.jpg");
+  spriteSheet = loadImage("media/FronkSheetAlternate.png");
+  backImage = loadImage("media/spaceBG.jpg");
 }
 
 //Setup Function
@@ -65,6 +189,12 @@ function draw() {
 
   //The game's start screen graphics
   if(gameState == 'start'){
+    if(musicTriggered == false){
+      introMelodyPart.start();
+      introBassPart.start();
+      musicTriggered = true;
+    }
+    Tone.Transport.start();
     textAlign(CENTER, CENTER);
     fill(255, 255, 0);
     textSize(100);
@@ -78,9 +208,11 @@ function draw() {
     }
   }
 
+  //Simple countdown phase.
   if(gameState == 'transition'){
     if(frameCount >= startFrameCount + 180){
       gameState = 'playing';
+      musicTriggered = false;
     }
     else {
       transitionNum = int(((startFrameCount + 180 - frameCount) / 60) + 1);
@@ -95,6 +227,8 @@ function draw() {
   
   //The game's in-progress graphical procedures
   if(gameState == 'playing'){
+    playBassPart.start();
+    playMelodyPart.start();
     for(i = 0; i < fronkAmount; i++){
       fronkHouse[i].draw();   //Loads the Fronks
     }
@@ -102,6 +236,8 @@ function draw() {
     //the game due to FPS differences, however most systems run at 60 FPS standard, thus this should
     //suffice for the time being. I plan to change this to milliseconds in the future.
     if(frameCount >= startFrameCount + 1800){
+      playBassPart.stop();
+      playMelodyPart.stop();
       gameState = 'end';
     }
     else{   //In-game graphical setup.
@@ -137,15 +273,19 @@ function draw() {
 
 //Procedures for when the mouse is pressed.
 function mousePressed() {
-
-  if(gameState == 'start'){   //If on the start-screen, start the game.
+  if(gameState == 'start'){   //If on the start-screen, move to transition.
     gameState = 'transition';
     startFrameCount = frameCount;
+
+    musicTriggered = false;
+    introBassPart.stop();
+    introMelodyPart.stop();
   }
   previousFronkDeaths = fronkDeaths;  //Fronk death administration system.
   fronkDeaths = 0;
   for(i = 0; i < fronkAmount; i++){
     if(fronkHouse[i].kill()){
+      sounds.player('death').start();
       for(j = 0; j < fronkAmount; j++){
         fronkHouse[j].fronkSpeed += .1;   //With every death, fronkSpeed increases by .1.
       }
