@@ -1,13 +1,15 @@
 /*
   Author:     Calvin W Feldt
   Start Date: 14 January 2022
-  Last Edit:  15 January 2022
+  Last Edit:  22 March 2022
 
   Title: BugSquishProject
+
   Description:  This is a simple game in which the player squishes little space invaders named "Fronks."
   The goal is for the user to click (squish) as many Fronks as possible. An 1800 frame timer is in
   place, which is represented as 30 seconds. The game ends after the timer's countdown ends,
   showing the user their score.
+
   Purpose: CSC2463 'Bug Squish' Assignment
 
 */
@@ -212,6 +214,7 @@ function draw() {
   if(gameState == 'transition'){
     if(frameCount >= startFrameCount + 180){
       gameState = 'playing';
+      startFrameCount = frameCount;
       musicTriggered = false;
     }
     else {
@@ -288,6 +291,9 @@ function mousePressed() {
       sounds.player('death').start();
       for(j = 0; j < fronkAmount; j++){
         fronkHouse[j].fronkSpeed += .1;   //With every death, fronkSpeed increases by .1.
+        if(frameCount - startFrameCount >= 600){
+          Tone.Transport.bpm.value += 0.5;
+        }
       }
     }
   }
